@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Scraper</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📧 Email Scraper</h1>
+            <p>Extract emails from any website</p>
+        </div>
+
+        <!-- Form Section -->
+        <div class="form-section">
+            <form method="POST" class="scrape-form">
+                <div class="form-group">
+                    <label for="url">Enter Website URL:</label>
+                    <input 
+                        type="url" 
+                        id="url" 
+                        name="url" 
+                        placeholder="https://example.com" 
+                        required
+                    >
+                </div>
+                <button type="submit" class="btn-submit">🔍 Scrape Emails</button>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        {% if emails %}
+        <div class="results-section">
+            <h2>📍 Scraped Emails from: <span class="url-text">{{ url }}</span></h2>
+            <div class="emails-found">
+                <p class="count">Found <strong>{{ emails|length }}</strong> email(s)</p>
+                <div class="emails-list">
+                    {% for email in emails %}
+                    <div class="email-item">
+                        <span class="email-icon">✉️</span>
+                        <span class="email-text">{{ email }}</span>
+                        <button class="btn-copy" onclick="copyToClipboard('{{ email }}')">📋 Copy</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% elif url %}
+        <div class="no-results">
+            <p>❌ No emails found on this website.</p>
+        </div>
+        {% endif %}
+
+        <!-- Historical Data Section -->
+        <div class="history-section">
+            <div class="history-header">
+                <h2>📊 Historical Scraped Data</h2>
+                <a href="/download-csv" class="btn-download">⬇️ Download CSV</a>
+            </div>
+            
+            {% if csv_data %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Website URL</th>
+                        <th>Email Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in csv_data %}
+                    <tr>
+                        <td>{{ item.URL }}</td>
+                        <td>{{ item.Email }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="data-count">Total records: <strong>{{ csv_data|length }}</strong></p>
+            {% else %}
+            <p class="empty-history">No historical data yet. Start scraping!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert('Email copied: ' + text);
+        }
+    </script>
+</body>
+</html>
