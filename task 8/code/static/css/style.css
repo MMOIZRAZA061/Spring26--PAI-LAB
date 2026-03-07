@@ -1,0 +1,62 @@
+/* Default (day) theme */
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+.card {
+    background-color: #ffffff;
+}
+.navbar {
+    background-color: #343a40 !important;
+}
+
+/* Dark/night theme overrides */
+body.dark-mode {
+    background-color: #121212;
+    color: #e4e6eb;
+}
+body.dark-mode .card {
+    background-color: #1e1e1e;
+    color: #e4e6eb; /* ensure card text is light */
+}
+
+body.dark-mode .card .card-title,
+body.dark-mode .card .card-text,
+body.dark-mode .card .card-footer,
+body.dark-mode .card .btn {
+    color: #e4e6eb !important;
+}
+
+body.dark-mode .card .btn-primary {
+    background-color: #1976d2;
+    border-color: #1976d2;
+}
+body.dark-mode .navbar {
+    background-color: #212121 !important;
+}
+/* ensure navbar links are visible in dark mode */
+body.dark-mode .navbar .nav-link {
+    color: #ccc !important;
+}
+body.dark-mode .navbar .nav-link.active {
+    color: #fff !important;
+    font-weight: 600;
+}
+
+/* Toggle switch styling */
+.theme-switch {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.theme-switch input {
+    display: none;
+}
+.theme-switch label {
+    margin-left: 8px;
+    font-size: 0.9rem;
+    color: #ffffff; /* default label color for dark navbar */
+}
+body.dark-mode .theme-switch label {
+    color: #e4e6eb; /* lighter text when dark-mode active */
+}
