@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Restaurant Bot</title>
+        <link rel="stylesheet" href="/static/style.css" />
+      </head>
+      <body>
+        <main class="chat-wrapper">
+          <header class="chat-header" role="banner">
+            <div class="header-left">
+              <div class="chef">👨‍🍳</div>
+              <div class="title">Restaurant Bot</div>
+            </div>
+            <div class="header-right">
+              <div class="status"><span class="dot" aria-hidden></span> Online</div>
+            </div>
+          </header>
+
+          <!-- Semantic search section -->
+          <section class="search-section" style="padding:12px;border-bottom:1px solid #eee;">
+            <form id="search-form" onsubmit="return false;" style="display:flex;gap:8px;">
+              <input id="search-input" placeholder="Search questions (semantic)" style="flex:1;padding:8px;border:1px solid #ccc;border-radius:6px;" />
+              <button id="search-btn" style="padding:8px 12px;border-radius:6px;">Search</button>
+            </form>
+            <div id="search-results" style="margin-top:10px;"></div>
+          </section>
+
+          <section class="chat-container" role="main" aria-live="polite">
+            <div id="messages" class="messages" tabindex="0"></div>
+
+            <div class="shortcuts" role="toolbar" aria-label="Quick actions">
+              <button class="shortcut" data-msg="Cancel my order">Cancel Order</button>
+              <button class="shortcut" data-msg="Track my order">Track Order</button>
+              <button class="shortcut" data-msg="Show menu">Menu</button>
+            </div>
+
+            <div class="typing" id="typing" aria-hidden="true"><span></span><span></span><span></span></div>
+          </section>
+
+          <form id="composer" class="composer" action="#" onsubmit="return false;">
+            <input id="message-input" class="chat-input" placeholder="Type your message..." autocomplete="off" aria-label="Message" />
+            <button id="send-btn" class="send-btn" aria-label="Send" disabled>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </form>
+          
+        </main>
+
+        <script>
+          // --- Semantic search ---
+          const searchInput = document.getElementById('search-input');
+          const searchBtn = document.getElementById('search-btn');
+          const searchResultsEl = document.getElementById('search-results');
+
+          async function fetchSearch(query, k=5){
+            try{
+              const res = await fetch('/api/search', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({query,k}) });
+              return await res.json();
+            }catch(e){ return { error: 'search failed' }; }
+          }
+
+          function renderSearchResults(items){
+            searchResultsEl.innerHTML = '';
+            if(!items || items.length===0){ searchResultsEl.innerHTML = '<div class="muted">No results</div>'; return; }
+            items.forEach(it=>{
+              const div = document.createElement('div');
+              div.className = 'search-item';
+              div.innerHTML = `<strong>Q:</strong> ${it.question} <br/><strong>A:</strong> ${it.answer} <br/><small>score: ${it.score.toFixed(4)}</small>`;
+              div.style.padding='8px'; div.style.borderBottom='1px solid #eee';
+              searchResultsEl.appendChild(div);
+            });
+          }
+
+          searchBtn.addEventListener('click', async ()=>{
+            const q = searchInput.value.trim(); if(!q) return;
+            searchBtn.disabled = true; searchBtn.textContent='Searching...';
+            const res = await fetchSearch(q, 5);
+            if(res.results) renderSearchResults(res.results);
+            else searchResultsEl.innerText = res.error || 'Error';
+            searchBtn.disabled = false; searchBtn.textContent='Search';
+          });
+
+          searchInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); searchBtn.click(); } });
+
+          const messagesEl = document.getElementById('messages');
+          const input = document.getElementById('message-input');
+          const sendBtn = document.getElementById('send-btn');
+          const typingEl = document.getElementById('typing');
+
+          function timeNow() {
+            const d = new Date();
+            return d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+          }
+
+          function createMessageEl(role, text) {
+            const el = document.createElement('div');
+            el.className = 'message ' + role + ' enter';
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            const txt = document.createElement('div');
+            txt.className = 'text';
+            txt.innerText = text;
+            const ts = document.createElement('div');
+            ts.className = 'ts';
+            ts.innerText = timeNow();
+            bubble.appendChild(txt);
+            bubble.appendChild(ts);
+            el.appendChild(bubble);
+            return el;
+          }
+
+          function appendMessage(role, text) {
+            const el = createMessageEl(role, text);
+            messagesEl.appendChild(el);
+            // remove enter class after animation
+            requestAnimationFrame(() => setTimeout(() => el.classList.remove('enter'), 250));
+            scrollToBottom();
+          }
+
+          function scrollToBottom() {
+            messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
+          }
+
+          function setTyping(on) {
+            typingEl.style.display = on ? 'flex' : 'none';
+            typingEl.setAttribute('aria-hidden', on ? 'false' : 'true');
+            if (on) scrollToBottom();
+          }
+
+          async function fetchBotReply(message) {
+            // show typing indicator while waiting
+            setTyping(true);
+            try {
+              const res = await fetch('/api/chat', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message })
+              });
+              const data = await res.json();
+              return data.response || "Sorry, I didn't get that.";
+            } catch (e) {
+              return 'Error connecting to server';
+            } finally {
+              setTyping(false);
+            }
+          }
+
+          async function sendMessageFlow(text) {
+            if (!text) return;
+            appendMessage('user', text);
+            input.value = '';
+            sendBtn.disabled = true;
+            const reply = await fetchBotReply(text);
+            appendMessage('bot', reply);
+          }
+
+          // input events
+          input.addEventListener('input', () => { sendBtn.disabled = !input.value.trim(); });
+          input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (input.value.trim()) sendMessageFlow(input.value.trim()); } });
+          sendBtn.addEventListener('click', () => { if (input.value.trim()) sendMessageFlow(input.value.trim()); });
+
+          // shortcuts
+          document.querySelectorAll('.shortcut').forEach(btn => btn.addEventListener('click', () => { const text = btn.dataset.msg || btn.textContent; sendMessageFlow(text); }));
+
+          // init: focus input and show sample welcome
+          window.addEventListener('load', () => { input.focus(); appendMessage('bot', 'Hello! I\'m Restaurant Bot — how can I help you today?'); });
+        </script>
+      </body>
+    </html>

@@ -1,0 +1,79 @@
+:root{
+	--bg:#f1f5f9; /* light background */
+	--bg-dark:#0f172a; /* dark background */
+	--card:#ffffff;
+	--muted:#6b7280;
+	--primary-600:#b45309; /* warm orange/brown */
+	--primary-400:#f59e0b;
+	--user-grad:linear-gradient(135deg,#c2410c,#f97316);
+	--shadow:0 8px 20px rgba(2,6,23,0.08);
+	--radius:14px;
+}
+*{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:#111;display:flex;align-items:center;justify-content:center;padding:20px}
+
+/* Wrapper centers the whole app */
+.chat-wrapper{width:100%;max-width:720px;display:flex;flex-direction:column;gap:12px}
+
+/* Header */
+.chat-header{position:sticky;top:12px;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:transparent}
+.chat-header .header-left{display:flex;align-items:center;gap:10px}
+.chat-header .chef{font-size:20px}
+.chat-header .title{font-weight:700;font-size:16px}
+.chat-header .status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.chat-header .status .dot{width:9px;height:9px;border-radius:50%;background:#16a34a;display:inline-block}
+
+/* Chat container */
+.chat-container{height:70vh;min-height:380px;border-radius:16px;overflow:hidden;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column}
+.messages{flex:1;padding:14px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+
+/* Message styles */
+.message{display:flex;max-width:78%;align-self:flex-start;transition:transform .22s ease,opacity .22s ease}
+.message.enter{opacity:0;transform:translateY(8px)}
+.message .bubble{padding:10px 12px;border-radius:var(--radius);box-shadow:0 6px 14px rgba(2,6,23,0.06);display:inline-block}
+.message .text{font-size:14px;color:inherit}
+.message .ts{font-size:11px;color:var(--muted);margin-top:6px;text-align:right}
+
+/* Bot (left) */
+.message.bot{align-self:flex-start}
+.message.bot .bubble{background:#ffffff;color:#111;border-radius:16px}
+
+/* User (right) */
+.message.user{align-self:flex-end}
+.message.user .bubble{background:var(--user-grad);color:#fff;border-radius:16px}
+
+/* Composer (fixed bottom inside wrapper) */
+.composer{display:flex;gap:8px;padding:12px;background:transparent;align-items:center}
+.chat-input{flex:1;padding:10px 12px;border-radius:999px;border:1px solid #e6eef8;outline:none;font-size:14px}
+.send-btn{display:inline-flex;align-items:center;justify-content:center;border:0;background:var(--primary-600);color:#fff;padding:8px;border-radius:10px;cursor:pointer;transition:transform .12s ease,opacity .12s ease}
+.send-btn[disabled]{opacity:.5;transform:none;cursor:not-allowed}
+.send-btn:hover:not([disabled]){transform:translateY(-2px)}
+
+/* Shortcuts */
+.shortcuts{display:flex;gap:8px;justify-content:center;padding:8px;background:transparent}
+.shortcut{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:6px 10px;border-radius:999px;font-size:13px;cursor:pointer}
+
+/* Typing indicator */
+.typing{display:none;align-items:center;gap:6px;padding:8px 12px;justify-content:flex-start}
+.typing span{display:block;width:6px;height:6px;background:rgba(0,0,0,0.18);border-radius:50%;animation:blink 1s infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%{opacity:.2;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}100%{opacity:.2;transform:translateY(0)}}
+
+/* Dark theme */
+body.dark{background:var(--bg-dark);color:#e6eef8}
+body.dark .chat-container{background:#071029}
+body.dark .message.bot .bubble{background:#0b1220;color:#e6eef8}
+body.dark .message.user .bubble{background:linear-gradient(135deg,#7c2d12,#d97706);color:#fff}
+body.dark .chat-input{background:#071029;border:1px solid #142032;color:#e6eef8}
+body.dark .shortcut{border-color:rgba(255,255,255,0.06);color:#e6eef8}
+
+/* Responsiveness */
+@media(max-width:520px){
+	.chat-wrapper{padding:6px}
+	.chat-header{padding:8px}
+	.messages{padding:10px;gap:6px}
+	.composer{padding:10px}
+}
+
